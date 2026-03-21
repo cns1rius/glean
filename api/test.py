@@ -13,5 +13,3 @@ def test():
 @app.get("/api/health")
 def health():
     return {"status": "healthy"}
-
-handler = app
