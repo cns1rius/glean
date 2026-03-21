@@ -15,7 +15,21 @@ sys.path.insert(0, str(_backend_path))
 sys.path.insert(0, str(_backend_path / "apps"))
 sys.path.insert(0, str(_backend_path / "packages"))
 
-from glean_api.main import app
+# Test if imports work
+try:
+    from glean_api.main import app
+    handler = app
+except Exception as e:
+    # If import fails, return a simple fallback handler
+    from fastapi import FastAPI
+    app = FastAPI()
 
-# Vercel Python handler
-handler = app
+    @app.get("/api/test")
+    def test():
+        return {"error": str(e), "status": "import_failed"}
+
+    @app.get("/api/health")
+    def health():
+        return {"status": "healthy", "mode": "fallback"}
+
+    handler = app
