@@ -103,3 +103,5 @@ Thumbs.db
 
 # Docs
 docs
+.vercel
+.env*.local
