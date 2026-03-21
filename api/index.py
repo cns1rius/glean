@@ -1,23 +1,16 @@
 """
-Vercel serverless entry point.
-
-Vercel Python runtime requires app to be defined at top level.
-This module imports the full Glean backend.
+Vercel serverless entry point - Standalone test.
 """
 
-import sys
-from pathlib import Path
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
-# Set up paths for backend imports
-# Project structure: glean/{api,backend,frontend}/
-_project_root = Path(__file__).parent
-_backend_path = _project_root / "backend"
+app = FastAPI()
 
-# Add backend packages to path
-sys.path.insert(0, str(_backend_path / "apps" / "api"))
-sys.path.insert(0, str(_backend_path / "packages" / "database"))
-sys.path.insert(0, str(_backend_path / "packages" / "core"))
-sys.path.insert(0, str(_backend_path / "packages" / "rss"))
-sys.path.insert(0, str(_backend_path / "packages" / "vector"))
+@app.get("/api/test")
+def test():
+    return JSONResponse({"message": "Python works!", "status": "ok"})
 
-from glean_api.main import app
+@app.get("/api/health")
+def health():
+    return JSONResponse({"status": "healthy", "mode": "standalone"})
