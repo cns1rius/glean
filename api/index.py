@@ -1,15 +1,16 @@
 """
-Simple test endpoint to verify Python functions work on Vercel.
+Vercel serverless entry point - Standalone test.
 """
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
 @app.get("/api/test")
 def test():
-    return {"message": "Python works!", "status": "ok"}
+    return JSONResponse({"message": "Python works!", "status": "ok"})
 
 @app.get("/api/health")
 def health():
-    return {"status": "healthy"}
+    return JSONResponse({"status": "healthy", "mode": "standalone"})
