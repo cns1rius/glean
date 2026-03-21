@@ -32,8 +32,13 @@ export class ApiClient {
     // Check if running in Electron environment
     this.isElectron = typeof window !== 'undefined' && !!window.electronAPI
 
-    // Always use /api as base URL (works for both web and Electron)
-    const baseURL = config.baseURL || '/api'
+    // Use VITE_API_URL if set, otherwise fall back to /api proxy
+    // VITE_API_URL is useful for:
+    // - Direct connection to backend (bypassing Vite proxy)
+    // - Electron app connecting to custom backend URL
+    // - Production deployments with external backend
+    const envApiUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL
+    const baseURL = config.baseURL || envApiUrl || '/api'
 
     if (this.isElectron) {
       // Initialize cache asynchronously

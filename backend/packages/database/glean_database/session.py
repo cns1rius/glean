@@ -19,26 +19,41 @@ _engine = None
 _async_session_maker = None
 
 
-def init_database(database_url: str) -> None:
+def init_database(database_url: str, serverless: bool = False) -> None:
     """
     Initialize database connection pool.
 
     Args:
         database_url: PostgreSQL connection URL with asyncpg driver.
+        serverless: If True, use smaller pool sizes suitable for serverless.
 
     Note:
         This function should be called once at application startup.
     """
     global _engine, _async_session_maker
 
-    _engine = create_async_engine(
-        database_url,
-        echo=False,
-        pool_size=20,
-        max_overflow=10,
-        pool_timeout=30,
-        pool_recycle=1800,
-    )
+    if serverless:
+        # Serverless-friendly pool settings
+        # Lower pool_size and max_overflow to avoid exhausting connections
+        # during cold starts or burst traffic
+        _engine = create_async_engine(
+            database_url,
+            echo=False,
+            pool_size=5,
+            max_overflow=2,
+            pool_timeout=10,
+            pool_recycle=300,
+        )
+    else:
+        # Standard pool settings for persistent servers
+        _engine = create_async_engine(
+            database_url,
+            echo=False,
+            pool_size=20,
+            max_overflow=10,
+            pool_timeout=30,
+            pool_recycle=1800,
+        )
 
     _async_session_maker = async_sessionmaker(
         _engine,

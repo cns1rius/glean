@@ -62,6 +62,15 @@ class Settings(BaseSettings):
     mcp_issuer_url: str = "http://localhost:8000"
     mcp_resource_server_url: str = "http://localhost:8000/mcp"
 
+    # Serverless mode
+    # When True, skips Redis pool and MCP initialization (for Vercel/Cloudflare)
+    serverless: bool = Field(default=False, validation_alias="SERVERLESS")
+
+    # Cron secret for serverless cron endpoints
+    # Used to authenticate cron requests from Vercel/GitHub Actions
+    # Generate with: openssl rand -hex 32
+    cron_secret: str = Field(default="", validation_alias="CRON_SECRET")
+
 
 @lru_cache
 def get_settings() -> Settings:

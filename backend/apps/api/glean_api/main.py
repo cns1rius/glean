@@ -29,6 +29,7 @@ from .routers import (
     api_tokens,
     auth,
     bookmarks,
+    cron,
     entries,
     feeds,
     folders,
@@ -77,6 +78,7 @@ def get_oss_routers() -> list[RouterConfig]:
         (preference.router, "/api/preference", ["Preference"]),
         (system.router, "/api/system", ["System"]),
         (api_tokens.router, "/api/tokens", ["API Tokens"]),
+        (cron.router, "/api/cron", ["Cron"]),
     ]
 
 
@@ -111,32 +113,39 @@ def create_app(
         from glean_database.session import init_database
 
         logger.info(f"Starting Glean API v{settings.version}")
-        init_database(settings.database_url)
+        init_database(settings.database_url, serverless=settings.serverless)
 
-        # Initialize Redis pool for task queue
-        redis_settings = RedisSettings.from_dsn(settings.redis_url)
-        _app.state.redis_pool = await create_pool(redis_settings)
-        logger.info("Redis pool initialized")
+        # Initialize Redis pool for task queue (skip in serverless mode)
+        if settings.serverless:
+            logger.info("Running in serverless mode, skipping Redis pool and MCP")
+        else:
+            redis_settings = RedisSettings.from_dsn(settings.redis_url)
+            _app.state.redis_pool = await create_pool(redis_settings)
+            logger.info("Redis pool initialized")
 
         # Run extra startup hook
         if extra_startup:
             await extra_startup()
 
-        # Initialize MCP server session manager
-        async with mcp_server.session_manager.run():
-            logger.info("MCP server initialized")
+        # Initialize MCP server session manager (skip in serverless mode)
+        if settings.serverless:
             yield
+        else:
+            async with mcp_server.session_manager.run():
+                logger.info("MCP server initialized")
+                yield
 
         # Shutdown: Cleanup resources
         try:
             if extra_shutdown:
                 await extra_shutdown()
         finally:
-            redis_pool = getattr(_app.state, "redis_pool", None)
-            if redis_pool:
-                await redis_pool.close()
-                _app.state.redis_pool = None
-                logger.info("Redis pool closed")
+            if not settings.serverless:
+                redis_pool = getattr(_app.state, "redis_pool", None)
+                if redis_pool:
+                    await redis_pool.close()
+                    _app.state.redis_pool = None
+                    logger.info("Redis pool closed")
             logger.info("Shutting down Glean API")
 
     application = FastAPI(
