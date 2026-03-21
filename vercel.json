@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "cd frontend && pnpm install && pnpm build",
   "outputDirectory": "frontend/apps/web/dist",
-  "installCommand": "cd backend && pip install -e apps/api && pip install -e packages/database -e packages/core -e packages/rss -e packages/vector && pip install fastapi uvicorn pydantic-settings python-jose passlib httpx structlog loguru arq mcp[cli] sqlalchemy asyncpg alembic feedparser beautifulsoup4 lxml python-multipart",
+  "installCommand": "cd backend && uv sync",
   "regions": ["iad1"],
   "crons": [
     {
