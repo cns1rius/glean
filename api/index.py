@@ -15,8 +15,21 @@ sys.path.insert(0, str(_backend / "packages" / "core"))
 sys.path.insert(0, str(_backend / "packages" / "rss"))
 sys.path.insert(0, str(_backend / "packages" / "vector"))
 
+# Test importing glean_core
+try:
+    from glean_core import get_logger
+    logger = get_logger(__name__)
+    logger.info("glean_core imported successfully")
+    import_result = "glean_core OK"
+except Exception as e:
+    import_result = f"glean_core failed: {e}"
+
 app = FastAPI()
 
 @app.get("/api/test")
 def test():
-    return JSONResponse({"message": "Python works!", "status": "ok", "phase": "paths_added"})
+    return JSONResponse({
+        "message": "Python works!",
+        "status": "ok",
+        "import": import_result
+    })
